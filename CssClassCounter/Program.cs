@@ -26,6 +26,21 @@ namespace CssClassCounter
             File.WriteAllLines(@"C:\temp\css_classes.csv", lines);
         }
 
+        static async Task Jobcentre()
+        {
+            var classNames = new Dictionary<string, int>();
+
+            foreach (var htmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src", "*.cshtml", SearchOption.AllDirectories))
+                (await ClassNamesFromHtml(htmlFile)).MergeInto(classNames);
+
+            foreach (var jsFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\js", "*.js", SearchOption.AllDirectories))
+                (await ClassNamesFromBackboneJS(jsFile)).MergeInto(classNames);
+
+            var names = classNames.Sort().Select(pair => $"{pair.Key},{pair.Value}");
+            var lines = names.Prepend("class,count");
+            File.WriteAllLines(@"C:\temp\css_classes_jobcentre.csv", lines);
+        }
+
         static async Task<Dictionary<string, int>> ClassNamesFromHtml(string htmlFile)
         {
             var html = await File.ReadAllTextAsync(htmlFile);
