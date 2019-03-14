@@ -12,6 +12,11 @@ namespace CssClassCounter
     {
         static async Task Main(string[] args)
         {
+            await Test();
+        }
+
+        static async Task Test()
+        {
             var namesFromHtml = await ClassNamesFromHtml(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.cshtml"));
             var namesFromJS = await ClassNamesFromBackboneJS(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.js"));
 
