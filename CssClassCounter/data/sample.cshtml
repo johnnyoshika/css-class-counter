@@ -1,7 +1,11 @@
 @using BCJobs.Employers
+@inject BCJobs.Authorization.Authorizer<UISection> SectionAuthorizer
+@inject BCJobs.Foo.Bar<Kite> KiteTester
+@inject BCJobs.Foo.Game<Game> GameTester
 
 @{
     Layout = "~/Views/Shared/_Public.cshtml";
+    <span class="extra">test</span>
 }
 
 Hello world!!!
