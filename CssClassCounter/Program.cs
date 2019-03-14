@@ -24,8 +24,15 @@ namespace CssClassCounter
 
         static async Task<Dictionary<string, int>> ClassNamesFromHtml(string htmlFile)
         {
-            var html = await File.ReadAllTextAsync(htmlFile);
-            return html.ClassNames().Sort();
+            try
+            {
+                var html = await File.ReadAllTextAsync(htmlFile);
+                return html.ClassNames().Sort();
+            }
+            catch (FormatException ex)
+            {
+                throw new FormatException($"{htmlFile}: {ex.Message}");
+            }
         }
 
         static async Task<Dictionary<string, int>> ClassNamesFromBackboneJS(string jsFile)
@@ -68,7 +75,7 @@ namespace CssClassCounter
             document.LoadHtml(html);
 
             if (document.ParseErrors.Any())
-                throw new ArgumentException(string.Join('|', document.ParseErrors.Select(e => e.Reason)));
+                throw new FormatException(string.Join('|', document.ParseErrors.Select(e => e.Reason)));
 
             var classNames = new Dictionary<string, int>();
             foreach (var node in document.DocumentNode.Descendants())
