@@ -113,12 +113,28 @@ namespace CssClassCounter
 
                     foreach (var attribute in node.Attributes)
                         foreach (var name1 in attribute.ClassNames())
-                            yield return name1;
+                            if (!name1.IsNoise())
+                                yield return name1;
                     break;
                 default:
                     throw new NotSupportedException();
             }
         }
+
+        static bool IsNoise(this string s) =>
+            new[]
+            {
+                "!=",
+                "%",
+                "?",
+                "=="
+            }.Contains(s)
+            ||
+            int.TryParse(s, out int result)
+            ||
+            s.StartsWith("(")
+            ||
+            s.StartsWith("@");
 
         static IEnumerable<string> ClassNames(this HtmlAttribute attribute) =>
             attribute.Name == "class"
