@@ -16,10 +16,9 @@ namespace CssClassCounter
             var namesFromJS = await ClassNamesFromBackboneJS(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.js"));
 
             namesFromJS.MergeInto(namesFromHtml);
-            var names = namesFromHtml.Sort();
-
-            foreach (var pair in names)
-            Console.WriteLine($"{pair.Key},{pair.Value}");
+            var names = namesFromHtml.Sort().Select(pair => $"{pair.Key},{pair.Value}");
+            var lines = names.Prepend("class,count");
+            File.WriteAllLines(@"C:\temp\css_classes.csv", lines);
         }
 
         static async Task<Dictionary<string, int>> ClassNamesFromHtml(string htmlFile)
