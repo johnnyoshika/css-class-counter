@@ -125,7 +125,10 @@ namespace CssClassCounter
                     foreach (var attribute in node.Attributes)
                         foreach (var name1 in attribute.ClassNames())
                             if (!name1.IsNoise())
-                                yield return name1;
+                                if (name1 == "blahblahblahblahblah")
+                                    throw new InvalidOperationException(); // debugging: conditional breakpoints don't seem to work, so put a breakpoint here
+                                else
+                                    yield return name1;
                     break;
                 default:
                     throw new NotSupportedException();
