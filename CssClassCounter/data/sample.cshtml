@@ -8,11 +8,23 @@
     <span class="extra">test</span>
 }
 
+@functions {
+    public static IHtmlContent AmountText(PositiveAmount amount, string recurrencePeriod) =>
+        new HtmlString(
+            amount.ToString() +
+                (recurrencePeriod == NullOrWhiteSpace
+                    ? ""
+                    : @"<span class=""pricing-recurrence"">/mo</span>"));
+}
+
+
 Hello world!!!
 
 <div class="header-curve">
     <img src="/assets/images/header-curve.svg">
 </div>
+
+<strong>@Html.Raw(plan.Name?.HtmlEncode().Replace("(Billed Monthly)", "<span class=\"pricing-recurrence\">(Billed Monthly)</span>"))</strong><br />
 
 <script id="foo" type="text/html">
     <div class="template-1">

@@ -84,7 +84,7 @@ namespace CssClassCounter
         public static Dictionary<string, int> ClassNames(this string html)
         {
             var document = new HtmlDocument();
-            document.LoadHtml(html);
+            document.LoadHtml(html.Cleans());
 
             var classNames = new Dictionary<string, int>();
             foreach (var node in document.DocumentNode.Descendants())
@@ -93,6 +93,11 @@ namespace CssClassCounter
 
             return classNames;
         }
+
+        static string Cleans(this string s) =>
+            s
+            .Replace("\"\"", "\"")
+            .Replace("\\\"", "\"");
 
         static IEnumerable<string> ClassNames(this HtmlNode node)
         {
