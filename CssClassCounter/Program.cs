@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
@@ -11,14 +12,26 @@ namespace CssClassCounter
     {
         static async Task Main(string[] args)
         {
-            foreach (var pair in await ClassNamesFromHtml(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.cshtml")))
-                Console.WriteLine($"{pair.Key},{pair.Value}");
+            var namesFromHtml = await ClassNamesFromHtml(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.cshtml"));
+            var namesFromJS = await ClassNamesFromBackboneJS(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.js"));
+
+            namesFromJS.MergeInto(namesFromHtml);
+            var names = namesFromHtml.Sort();
+
+            foreach (var pair in names)
+            Console.WriteLine($"{pair.Key},{pair.Value}");
         }
 
         static async Task<Dictionary<string, int>> ClassNamesFromHtml(string htmlFile)
         {
             var html = await File.ReadAllTextAsync(htmlFile);
             return html.ClassNames().Sort();
+        }
+
+        static async Task<Dictionary<string, int>> ClassNamesFromBackboneJS(string jsFile)
+        {
+            var lines = await File.ReadAllLinesAsync(jsFile);
+            return lines.ClassNames().Sort();
         }
     }
 
@@ -35,6 +48,15 @@ namespace CssClassCounter
         {
             counter.TryGetValue(key, out int count); // count will be set to default (0) if key doesn't exist: https://stackoverflow.com/a/7132978/188740
             counter[key] = count + 1;
+        }
+
+        public static void MergeInto(this Dictionary<string, int> source, Dictionary<string, int> destination)
+        {
+            foreach (var pair in source)
+            {
+                destination.TryGetValue(pair.Key, out int count); // count will be set to default (0) if key doesn't exist: https://stackoverflow.com/a/7132978/188740
+                destination[pair.Key] = count + pair.Value;
+            }
         }
     }
 
@@ -93,5 +115,25 @@ namespace CssClassCounter
             node.Attributes.Any(a => a.Name.ToLower() == "type")
             && 
             node.Attributes.First(a => a.Name.ToLower() == "type").Value != "text/javascript";
+    }
+
+    static class JSExtensions
+    {
+        public static Dictionary<string, int> ClassNames(this IEnumerable<string> lines)
+        {
+            var regex = new Regex(@"className:\s{1,}['""]([a-zA-Z0-9\-_\s]*)['""]");
+
+            var classNames = new Dictionary<string, int>();
+
+            lines
+                .Select(l => regex.Match(l))
+                .Where(m => m.Success)
+                .Select(m => m.Groups[1].Value.Trim())
+                .SelectMany(names => names.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .ToList()
+                .ForEach(name => classNames.AppendCount(name));
+
+            return classNames;
+        }
     }
 }
