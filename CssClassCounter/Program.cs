@@ -26,28 +26,41 @@ namespace CssClassCounter
 
             var namesFromCss = await ClassNamesFromCss(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.css"));
             await WriteCsv(namesFromCss, @"C:\temp\css_class_names_test.csv");
+
+            var join = namesFromHtml.OuterJoin(namesFromCss);
+            await WriteCsv(join, @"C:\temp\css_class_names_join_test.csv", "HTML", "Stylesheet");
         }
 
         static async Task Jobcentre()
         {
-            var classNames = new Dictionary<string, int>();
+            var namesFromHtml = new Dictionary<string, int>();
 
             foreach (var htmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src", "*.cshtml", SearchOption.AllDirectories))
-                (await ClassNamesFromHtml(htmlFile)).MergeInto(classNames);
+                (await ClassNamesFromHtml(htmlFile)).MergeInto(namesFromHtml);
 
             foreach (var jsFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\js", "*.js", SearchOption.AllDirectories))
-                (await ClassNamesFromBackboneJS(jsFile)).MergeInto(classNames);
+                (await ClassNamesFromBackboneJS(jsFile)).MergeInto(namesFromHtml);
 
-            await WriteCsv(classNames, @"C:\temp\html_class_names_jobcentre.csv");
+            await WriteCsv(namesFromHtml, @"C:\temp\html_class_names_jobcentre.csv");
 
             var namesFromCss = await ClassNamesFromCss(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\css\jobcentre.css");
             await WriteCsv(namesFromCss, @"C:\temp\css_class_names_jobcentre.csv");
+
+            var join = namesFromHtml.OuterJoin(namesFromCss);
+            await WriteCsv(join, @"C:\temp\css_class_names_join_jobcentre.csv", "HTML", "Stylesheet");
         }
 
         static async Task WriteCsv(Dictionary<string, int> classNames, string file)
         {
             var names = classNames.Sort().Select(pair => $"{pair.Key},{pair.Value}");
             var lines = names.Prepend("class,count");
+            await File.WriteAllLinesAsync(file, lines);
+        }
+
+        static async Task WriteCsv(Dictionary<string, Pair> join, string file, string leftLabel, string rightLabel)
+        {
+            var names = join.Sort().Select(pair => $"{pair.Key},{pair.Value.Left},{pair.Value.Right}");
+            var lines = names.Prepend($"class,{leftLabel},{rightLabel}");
             await File.WriteAllLinesAsync(file, lines);
         }
 
@@ -80,6 +93,18 @@ namespace CssClassCounter
         }
     }
 
+    class Pair
+    {
+        public Pair(int left, int right)
+        {
+            Left = left;
+            Right = right;
+        }
+
+        public int Left { get; }
+        public int Right { get; }
+    }
+
     static class DictionaryExtensions
     {
         public static Dictionary<string, int> Sort(this Dictionary<string, int> dictionary)
@@ -87,6 +112,13 @@ namespace CssClassCounter
             var list = dictionary.ToList();
             list.Sort((pair1, pair2) => pair1.Key.CompareTo(pair2.Key));
             return new Dictionary<string, int>(list);
+        }
+
+        public static Dictionary<string, Pair> Sort(this Dictionary<string, Pair> dictionary)
+        {
+            var list = dictionary.ToList();
+            list.Sort((pair1, pair2) => pair1.Key.CompareTo(pair2.Key));
+            return new Dictionary<string, Pair>(list);
         }
 
         public static void AppendCount(this Dictionary<string, int> counter, string key)
@@ -102,6 +134,26 @@ namespace CssClassCounter
                 destination.TryGetValue(pair.Key, out int count); // count will be set to default (0) if key doesn't exist: https://stackoverflow.com/a/7132978/188740
                 destination[pair.Key] = count + pair.Value;
             }
+        }
+
+        public static Dictionary<string, Pair> OuterJoin(this Dictionary<string, int> left, Dictionary<string, int> right)
+        {
+            var join = new Dictionary<string, Pair>();
+            foreach (var l in left)
+            {
+                right.TryGetValue(l.Key, out int r);
+                join[l.Key] = new Pair(l.Value, r);
+            }
+
+            foreach (var r in right)
+            {
+                if (join.ContainsKey(r.Key))
+                    continue;
+
+                join[r.Key] = new Pair(0, r.Value);
+            }
+
+            return join;
         }
     }
 
