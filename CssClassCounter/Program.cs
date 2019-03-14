@@ -94,7 +94,7 @@ namespace CssClassCounter
             return classNames;
         }
 
-        public static IEnumerable<string> ClassNames(this HtmlNode node)
+        static IEnumerable<string> ClassNames(this HtmlNode node)
         {
             switch (node.NodeType)
             {
@@ -120,10 +120,14 @@ namespace CssClassCounter
             }
         }
 
-        public static IEnumerable<string> ClassNames(this HtmlAttribute attribute) =>
+        static IEnumerable<string> ClassNames(this HtmlAttribute attribute) =>
             attribute.Name == "class"
-                ? attribute.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                ? attribute.Value.StripERB().Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 : new string[0];
+
+        // strip everything between and including <% %>, which is underscore.js's template syntax
+        static string StripERB(this string s) =>
+            Regex.Replace(s, "<%.+?%>", " ");
 
         static bool IsScriptTemplate(this HtmlNode node) =>
             node.Name.ToLower() == "script"
