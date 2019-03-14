@@ -1,0 +1,58 @@
+@using BCJobs.Employers
+
+@{
+    Layout = "~/Views/Shared/_Public.cshtml";
+}
+
+Hello world!!!
+
+<div class="header-curve">
+    <img src="/assets/images/header-curve.svg">
+</div>
+
+<script id="foo" type="text/html">
+    <div class="template-1">
+        Test
+        <div class="template-2">
+            Test
+        </div>
+    </div>
+    <div class="template-1">
+        Test
+        <div class="template-3">
+            Test
+        </div>
+    </div>
+</script>
+
+@section SubNav{
+    <div class="header-curve">
+        <div class="    ">
+            <p class="  text-white   text-center "><b>Career life</p>
+            <a href="/jobseeker_login" class="btn">Looking for Work</a>
+            <input class="input">
+            One two three
+        </div>
+        <div class="header-curve">
+            <img src="/assets/images/header-curve.svg">
+        </div>
+    </div>
+
+    <div class="background-wave-green text-center">
+        <div>
+          Test
+        </div>
+    </div>
+}
+
+@await Component.InvokeAsync("CpaBC.Web.Components.Shared.FeaturedEmployersComponent", new FeaturedEmployerQuery { WebsiteId = SiteSettings.SiteId, ProvinceCode = "BC", MaxRows = 4})
+
+<script>
+    <span class="error1"></span>
+    console.log('test');
+</script>
+
+<script type="text/javascript">
+    <span class="error2"></span>
+    console.log('test');
+</script>
