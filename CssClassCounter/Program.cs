@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CSSParser;
+using CSSParser.ContentProcessors;
 using HtmlAgilityPack;
 
 namespace CssClassCounter
@@ -19,11 +21,11 @@ namespace CssClassCounter
         {
             var namesFromHtml = await ClassNamesFromHtml(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.cshtml"));
             var namesFromJS = await ClassNamesFromBackboneJS(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.js"));
-
             namesFromJS.MergeInto(namesFromHtml);
-            var names = namesFromHtml.Sort().Select(pair => $"{pair.Key},{pair.Value}");
-            var lines = names.Prepend("class,count");
-            File.WriteAllLines(@"C:\temp\css_classes.csv", lines);
+            await WriteCsv(namesFromHtml, @"C:\temp\html_class_names_test.csv");
+
+            var namesFromCss = await ClassNamesFromCss(Path.Combine(Directory.GetCurrentDirectory().Split("\\bin\\")[0], "data", "sample.css"));
+            await WriteCsv(namesFromCss, @"C:\temp\css_class_names_test.csv");
         }
 
         static async Task Jobcentre()
@@ -36,9 +38,17 @@ namespace CssClassCounter
             foreach (var jsFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\js", "*.js", SearchOption.AllDirectories))
                 (await ClassNamesFromBackboneJS(jsFile)).MergeInto(classNames);
 
+            await WriteCsv(classNames, @"C:\temp\html_class_names_jobcentre.csv");
+
+            var namesFromCss = await ClassNamesFromCss(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\css\jobcentre.css");
+            await WriteCsv(namesFromCss, @"C:\temp\css_class_names_jobcentre.csv");
+        }
+
+        static async Task WriteCsv(Dictionary<string, int> classNames, string file)
+        {
             var names = classNames.Sort().Select(pair => $"{pair.Key},{pair.Value}");
             var lines = names.Prepend("class,count");
-            File.WriteAllLines(@"C:\temp\css_classes_jobcentre.csv", lines);
+            await File.WriteAllLinesAsync(file, lines);
         }
 
         static async Task<Dictionary<string, int>> ClassNamesFromHtml(string htmlFile)
@@ -51,6 +61,20 @@ namespace CssClassCounter
         {
             var lines = await File.ReadAllLinesAsync(jsFile);
             return lines.ClassNames().Sort();
+        }
+
+        static async Task<Dictionary<string, int>> ClassNamesFromCss(string cssFile)
+        {
+            var css = await File.ReadAllTextAsync(cssFile);
+
+            var classNames = new Dictionary<string, int>();
+            Parser.ParseCSS(css)
+                .Where(c => c.CharacterCategorisation == CharacterCategorisationOptions.SelectorOrStyleProperty && c.Value.StartsWith('.'))
+                .SelectMany(c => c.Value.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                .ToList()
+                .ForEach(name => classNames.AppendCount(name.TrimEnd(',')));
+
+            return classNames.Sort();
         }
     }
 
