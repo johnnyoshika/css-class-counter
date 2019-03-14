@@ -94,10 +94,16 @@ namespace CssClassCounter
             return classNames;
         }
 
-        static string Cleans(this string s) =>
-            s
-            .Replace("\"\"", "\"")
-            .Replace("\\\"", "\"");
+        static string Cleans(this string s)
+        {
+            var regex1 = new Regex(@"class=\""\""[a-zA-Z0-9\-_\s]+?\""\""");
+            var regex2 = new Regex(@"class=\\""[a-zA-Z0-9\-_\s]+?\\""");
+
+            s = regex1.Matches(s).Aggregate(s, (accumulator, m) => s.Replace(m.Value, m.Value.Replace(@"""""", @"""")));
+            s = regex2.Matches(s).Aggregate(s, (accumulator, m) => s.Replace(m.Value, m.Value.Replace(@"\""", @"""")));
+
+            return s;
+        }
 
         static IEnumerable<string> ClassNames(this HtmlNode node)
         {
