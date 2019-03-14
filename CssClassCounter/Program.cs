@@ -71,6 +71,8 @@ namespace CssClassCounter
             Parser.ParseCSS(css)
                 .Where(c => c.CharacterCategorisation == CharacterCategorisationOptions.SelectorOrStyleProperty && c.Value.StartsWith('.'))
                 .SelectMany(c => c.Value.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                .Select(c => c.Split(':').First()) // Remove elemant state: btn:hover
+                .Select(c => Regex.Replace(c, "\\[.+?\\]", "")) // Remove attribute selector: btn-default[disabled]
                 .ToList()
                 .ForEach(name => classNames.AppendCount(name.TrimEnd(',')));
 
