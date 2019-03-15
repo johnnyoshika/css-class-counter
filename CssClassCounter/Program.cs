@@ -54,13 +54,19 @@ namespace CssClassCounter
         {
             var namesFromHtml = new Dictionary<string, int>();
 
-            foreach (var htmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\Common.Admin.Web", "*.cshtml", SearchOption.AllDirectories))
-                (await ClassNamesFromHtml(htmlFile)).MergeInto(namesFromHtml);
+            foreach (var adminHtmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\Common.Admin.Web", "*.cshtml", SearchOption.AllDirectories))
+                (await ClassNamesFromHtml(adminHtmlFile)).MergeInto(namesFromHtml);
+
+            foreach (var commonHtmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\Common.Web\Components\Admin", "*.cshtml", SearchOption.AllDirectories))
+                (await ClassNamesFromHtml(commonHtmlFile)).MergeInto(namesFromHtml);
 
             await WriteCsv(namesFromHtml, @"C:\temp\html_class_names_jobcentre_admin.csv");
 
             var namesFromCss = await ClassNamesFromCss(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\css\admin.css");
             await WriteCsv(namesFromCss, @"C:\temp\css_class_names_jobcentre_admin.csv");
+
+            var namesFromScss = await ClassNamesFromCss(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\css\admin.scss");
+            await WriteCsv(namesFromScss, @"C:\temp\css_class_names_jobcentre_admin_scss.csv");
 
             var join = namesFromHtml.OuterJoin(namesFromCss);
             await WriteCsv(join, @"C:\temp\class_names_jobcentre_admin.csv", "HTML", "Stylesheet");
