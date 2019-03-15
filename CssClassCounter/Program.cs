@@ -47,7 +47,7 @@ namespace CssClassCounter
             await WriteCsv(namesFromCss, @"C:\temp\css_class_names_jobcentre.csv");
 
             var join = namesFromHtml.OuterJoin(namesFromCss);
-            await WriteCsv(join, @"C:\temp\css_class_names_join_jobcentre.csv", "HTML", "Stylesheet");
+            await WriteCsv(join, @"C:\temp\class_names_jobcentre.csv", "HTML", "Stylesheet");
         }
 
         static async Task WriteCsv(Dictionary<string, int> classNames, string file)
