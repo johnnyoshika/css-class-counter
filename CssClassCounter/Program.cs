@@ -50,6 +50,22 @@ namespace CssClassCounter
             await WriteCsv(join, @"C:\temp\class_names_jobcentre.csv", "HTML", "Stylesheet");
         }
 
+        static async Task JobcentreAdmin()
+        {
+            var namesFromHtml = new Dictionary<string, int>();
+
+            foreach (var htmlFile in Directory.GetFiles(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\Common.Admin.Web", "*.cshtml", SearchOption.AllDirectories))
+                (await ClassNamesFromHtml(htmlFile)).MergeInto(namesFromHtml);
+
+            await WriteCsv(namesFromHtml, @"C:\temp\html_class_names_jobcentre_admin.csv");
+
+            var namesFromCss = await ClassNamesFromCss(@"C:\Users\Johnny\Documents\GitHub\jobcentre-net\src\assets\css\admin.css");
+            await WriteCsv(namesFromCss, @"C:\temp\css_class_names_jobcentre_admin.csv");
+
+            var join = namesFromHtml.OuterJoin(namesFromCss);
+            await WriteCsv(join, @"C:\temp\class_names_jobcentre_admin.csv", "HTML", "Stylesheet");
+        }
+
         static async Task WriteCsv(Dictionary<string, int> classNames, string file)
         {
             var names = classNames.Sort().Select(pair => $"{pair.Key},{pair.Value}");
